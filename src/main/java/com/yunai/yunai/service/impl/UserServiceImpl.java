@@ -2,14 +2,18 @@ package com.yunai.yunai.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.yunai.yunai.constant.UserConstant;
 import com.yunai.yunai.exception.BusinessException;
 import com.yunai.yunai.exception.ErrorCode;
 import com.yunai.yunai.mapper.UserMapper;
+import com.yunai.yunai.model.dto.vo.LoginUserVO;
 import com.yunai.yunai.model.entity.User;
 import com.yunai.yunai.model.enums.UserRoleEnum;
 import com.yunai.yunai.service.UserService;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -20,7 +24,7 @@ import org.springframework.util.DigestUtils;
  * @author <a href="https://github.com/winterstay">winterStay</a>
  */
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService, UserConstant {
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -64,6 +68,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 盐值，混淆密码
         final String SALT = "winterStay";
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+    }
+
+    @Override
+    public LoginUserVO getLoginUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        BeanUtil.copyProperties(user, loginUserVO);
+        return loginUserVO;
+    }
+
+    @Override
+    public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+        // 1. 校验
+        if (StrUtil.hasBlank(userAccount, userPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        }
+        if (userAccount.length() < 4) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号错误");
+        }
+        if (userPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+        // 2. 加密
+        String encryptPassword = getEncryptPassword(userPassword);
+        // 查询用户是否存在
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.eq("userAccount", userAccount);
+        queryWrapper.eq("userPassword", encryptPassword);
+        User user = this.mapper.selectOneByQuery(queryWrapper);
+        // 用户不存在
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
+        }
+        // 3. 记录用户的登录态
+        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 4. 获得脱敏后的用户信息
+        return this.getLoginUserVO(user);
     }
 
 }

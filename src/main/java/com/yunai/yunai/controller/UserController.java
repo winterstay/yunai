@@ -14,11 +14,14 @@ import com.yunai.yunai.common.BaseResponse;
 import com.yunai.yunai.common.ResultUtils;
 import com.yunai.yunai.exception.ErrorCode;
 import com.yunai.yunai.exception.ThrowUtils;
+import com.yunai.yunai.model.dto.user.UserLoginRequest;
 import com.yunai.yunai.model.dto.user.UserRegisterRequest;
+import com.yunai.yunai.model.dto.vo.LoginUserVO;
 import com.yunai.yunai.model.entity.User;
 import com.yunai.yunai.service.UserService;
 
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -29,21 +32,32 @@ import java.util.List;
  * @author <a href="https://github.com/winterstay">winterStay</a>
  */
 @RestController
-@RequestMapping("/user")    
+@RequestMapping("/user")
 public class UserController {
 
     @Resource
     private UserService userService;
 
-    //用户注册
+    // 用户注册
     @PostMapping("register")
-    public BaseResponse<Long>  userRegister(@RequestBody UserRegisterRequest userRegisterRequest) { 
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
+    }
+
+    //用户登陆
+    @PostMapping("/login")
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest,
+            HttpServletRequest request) {
+        ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
+        String userAccount = userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(loginUserVO);
     }
 
     /**
