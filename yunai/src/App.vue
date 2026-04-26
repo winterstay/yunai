@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import BasicLayout from './components/BasicLayout.vue'
+import { useLoginUserStore } from '@/stores/loginUser.ts'
+
+const loginUserStore = useLoginUserStore()
+onMounted(() => {
+  loginUserStore.fetchLoginUser()
+})
 </script>
 
 <template>

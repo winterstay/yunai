@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Menu, Avatar, Button } from 'ant-design-vue'
+import { Menu, Avatar, Button, Space, Dropdown, message } from 'ant-design-vue'
+import { LogoutOutlined } from '@ant-design/icons-vue'
+import { userLogout } from '@/api/userController'
 import { RouterLink, useRouter } from 'vue-router'
 import type { MenuProps } from 'ant-design-vue'
+import { useLoginUserStore } from '@/stores/loginUser.ts'
 
 const router = useRouter()
+const loginUserStore = useLoginUserStore()
 const selectedKeys = ref(['home'])
 
 const menuItems = [
@@ -39,6 +43,20 @@ router.afterEach((to) => {
     selectedKeys.value = ['about']
   }
 })
+
+// 用户注销
+const doLogout = async () => {
+  const res = await userLogout()
+  if (res.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: '未登录',
+    })
+    message.success('退出登录成功')
+    await router.push('/user/login')
+  } else {
+    message.error('退出登录失败，' + res.data.message)
+  }
+}
 </script>
 
 <template>
@@ -59,15 +77,27 @@ router.afterEach((to) => {
     </div>
     
     <div class="header-right">
-      <div class="user-info">
-        <Avatar size="small" class="user-avatar">
-          <template #icon>
-            <span>U</span>
-          </template>
-        </Avatar>
-        <span class="user-name">用户</span>
+      <div class="user-login-status">
+        <div v-if="loginUserStore.loginUser.id">
+          <Dropdown>
+            <Space>
+              <Avatar :src="loginUserStore.loginUser.userAvatar" />
+              {{ loginUserStore.loginUser.userName ?? '无名' }}
+            </Space>
+            <template #overlay>
+              <Menu>
+                <Menu.Item @click="doLogout">
+                  <LogoutOutlined />
+                  退出登录
+                </Menu.Item>
+              </Menu>
+            </template>
+          </Dropdown>
+        </div>
+        <div v-else>
+          <Button type="primary" href="/user/login">登录</Button>
+        </div>
       </div>
-      <Button type="primary" size="small">登录</Button>
     </div>
   </div>
 </template>
