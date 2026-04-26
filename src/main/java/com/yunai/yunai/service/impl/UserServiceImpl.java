@@ -6,14 +6,21 @@ import com.yunai.yunai.constant.UserConstant;
 import com.yunai.yunai.exception.BusinessException;
 import com.yunai.yunai.exception.ErrorCode;
 import com.yunai.yunai.mapper.UserMapper;
+import com.yunai.yunai.model.dto.user.UserQueryRequest;
 import com.yunai.yunai.model.dto.vo.LoginUserVO;
+import com.yunai.yunai.model.dto.vo.UserVO;
 import com.yunai.yunai.model.entity.User;
 import com.yunai.yunai.model.enums.UserRoleEnum;
 import com.yunai.yunai.service.UserService;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -136,6 +143,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
+    }
+
+    @Override
+    public UserVO getUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user, userVO);
+        return userVO;
+    }
+
+    @Override
+    public List<UserVO> getUserVOList(List<User> userList) {
+        if (CollUtil.isEmpty(userList)) {
+            return new ArrayList<>();
+        }
+        return userList.stream().map(this::getUserVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest) {
+        if (userQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        Long id = userQueryRequest.getId();
+        String userAccount = userQueryRequest.getUserAccount();
+        String userName = userQueryRequest.getUserName();
+        String userProfile = userQueryRequest.getUserProfile();
+        String userRole = userQueryRequest.getUserRole();
+        String sortField = userQueryRequest.getSortField();
+        String sortOrder = userQueryRequest.getSortOrder();
+        return QueryWrapper.create()
+                .eq("id", id)
+                .eq("userRole", userRole)
+                .like("userAccount", userAccount)
+                .like("userName", userName)
+                .like("userProfile", userProfile)
+                .orderBy(sortField, "ascend".equals(sortOrder));
     }
 
 }

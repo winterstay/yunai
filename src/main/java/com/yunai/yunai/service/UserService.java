@@ -1,7 +1,12 @@
 package com.yunai.yunai.service;
 
+import java.util.List;
+
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.yunai.yunai.model.dto.user.UserQueryRequest;
 import com.yunai.yunai.model.dto.vo.LoginUserVO;
+import com.yunai.yunai.model.dto.vo.UserVO;
 import com.yunai.yunai.model.entity.User;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,5 +55,11 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean userLogout(HttpServletRequest request);
+
+    public UserVO getUserVO(User user);
+
+    List<UserVO> getUserVOList(List<User> userList);
+
+    QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest);
 
 }
