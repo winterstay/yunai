@@ -10,4 +10,9 @@ import com.yunai.yunai.model.entity.User;
  */
 public interface UserService extends IService<User> {
 
+    //用户注册
+    long userRegister(String userAccount, String userPassword, String checkPassword);
+
+    String getEncryptPassword(String userPassword);
+
 }

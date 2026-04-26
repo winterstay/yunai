@@ -10,8 +10,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.yunai.yunai.common.BaseResponse;
+import com.yunai.yunai.common.ResultUtils;
+import com.yunai.yunai.exception.ErrorCode;
+import com.yunai.yunai.exception.ThrowUtils;
+import com.yunai.yunai.model.dto.user.UserRegisterRequest;
 import com.yunai.yunai.model.entity.User;
 import com.yunai.yunai.service.UserService;
+
+import jakarta.annotation.Resource;
 
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -22,11 +29,22 @@ import java.util.List;
  * @author <a href="https://github.com/winterstay">winterStay</a>
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/user")    
 public class UserController {
 
-    @Autowired
+    @Resource
     private UserService userService;
+
+    //用户注册
+    @PostMapping("register")
+    public BaseResponse<Long>  userRegister(@RequestBody UserRegisterRequest userRegisterRequest) { 
+        ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
+        String userAccount = userRegisterRequest.getUserAccount();
+        String userPassword = userRegisterRequest.getUserPassword();
+        String checkPassword = userRegisterRequest.getCheckPassword();
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        return ResultUtils.success(result);
+    }
 
     /**
      * 保存用户。
