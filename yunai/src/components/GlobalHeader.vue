@@ -62,7 +62,7 @@ const doLogout = async () => {
 <template>
   <div class="global-header">
     <div class="header-left">
-      <img src="@/assets/logo.svg" alt="Logo" class="logo" />
+      <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <h1 class="site-title">YunAI</h1>
       <Menu
         v-model:selectedKeys="selectedKeys"
