@@ -7,6 +7,8 @@ spring:
     url: jdbc:mysql://localhost:3306/yunai
     username: root
     password: mysql
+  profiles:
+    active: local
 
 server: 
   port: 8123
