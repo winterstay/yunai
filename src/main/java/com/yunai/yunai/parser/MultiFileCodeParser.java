@@ -1,4 +1,4 @@
-package com.yunai.parser;
+package com.yunai.yunai.parser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

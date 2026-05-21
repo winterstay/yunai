@@ -1,4 +1,4 @@
-package com.yunai.parser;
+package com.yunai.yunai.parser;
 
 /**
  * 代码解析器策略接口

@@ -1,4 +1,4 @@
-package com.yunai.parser;
+package com.yunai.yunai.parser;
 
 import com.yunai.yunai.exception.BusinessException;
 import com.yunai.yunai.exception.ErrorCode;
