@@ -10,6 +10,7 @@ import com.yunai.yunai.model.entity.App;
 import com.yunai.yunai.model.entity.User;
 
 import jakarta.servlet.http.HttpServletRequest;
+import reactor.core.publisher.Flux;
 
 /**
  * 应用 服务层。
@@ -35,4 +36,8 @@ public interface AppService extends IService<App> {
     App getUserOwnedAppById(Long id, User loginUser);
 
     User getLoginUser(HttpServletRequest request);
+
+    Flux<String> chatToGenCode(Long appId, String message, User loginUser);
+
+    String deployApp(Long appId, User loginUser);
 }
