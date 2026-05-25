@@ -69,4 +69,5 @@ public class AppVO implements Serializable {
     private LocalDateTime updateTime;
 
     private static final long serialVersionUID = 1L;
+    private UserVO user;
 }
