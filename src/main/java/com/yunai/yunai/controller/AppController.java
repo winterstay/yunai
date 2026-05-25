@@ -139,10 +139,10 @@ public class AppController {
      * 用户根据 id 查看自己的应用详情
      */
     @GetMapping("/get")
-    public BaseResponse<AppVO> getAppById(long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<AppVO> getAppById(@RequestParam String id, HttpServletRequest request) {
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR);
         User loginUser = appService.getLoginUser(request);
-        App app = appService.getUserOwnedAppById(id, loginUser);
+        App app = appService.getUserOwnedAppById(Long.parseLong(id), loginUser);
         return ResultUtils.success(appService.getAppVO(app));
     }
 
@@ -267,9 +267,9 @@ public class AppController {
      */
     @GetMapping("/admin/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<AppVO> adminGetAppById(long id) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        App app = appService.getAppById(id);
+    public BaseResponse<AppVO> adminGetAppById(@RequestParam String id) {
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR);
+        App app = appService.getAppById(Long.parseLong(id));
         return ResultUtils.success(appService.getAppVO(app));
     }
 
@@ -287,10 +287,10 @@ public class AppController {
      * @return 应用详情
      */
     @GetMapping("/get/vo")
-    public BaseResponse<AppVO> getAppVOById(long id) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<AppVO> getAppVOById(@RequestParam String id) {
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        App app = appService.getById(id);
+        App app = appService.getById(Long.parseLong(id));
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类（包含用户信息）
         return ResultUtils.success(appService.getAppVO(app));

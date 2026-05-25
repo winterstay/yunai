@@ -1,46 +1,58 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { Menu, Avatar, Button, Space, Dropdown, message } from 'ant-design-vue'
 import { LogoutOutlined } from '@ant-design/icons-vue'
 import { userLogout } from '@/api/userController'
 import { RouterLink, useRouter } from 'vue-router'
 import type { MenuProps } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
+import { isAdmin } from '@/utils/app'
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
 const selectedKeys = ref(['home'])
 
-const menuItems = [
-  {
-    key: 'home',
-    label: '首页',
-    path: '/'
-  },
-  {
-    key: 'about',
-    label: '关于',
-    path: '/about'
+const menuItems = computed(() => {
+  const items = [
+    {
+      key: 'home',
+      label: '首页',
+      path: '/',
+    },
+  ]
+  if (isAdmin(loginUserStore.loginUser)) {
+    items.push(
+      {
+        key: 'userManage',
+        label: '用户管理',
+        path: '/admin/userManage',
+      },
+      {
+        key: 'appManage',
+        label: '应用管理',
+        path: '/admin/appManage',
+      },
+    )
   }
-]
+  return items
+})
 
 const handleMenuClick: MenuProps['onClick'] = (e) => {
   const key = e.key as string
   selectedKeys.value = [key]
-  // 跳转到对应页面
-  if (key === 'home') {
-    router.push('/')
-  } else if (key === 'about') {
-    router.push('/about')
+  const target = menuItems.value.find((item) => item.key === key)
+  if (target) {
+    router.push(target.path)
   }
 }
 
 // 监听路由变化，更新当前选中菜单
 router.afterEach((to) => {
+  const current = menuItems.value.find((item) => to.path.startsWith(item.path) && item.path !== '/')
   if (to.path === '/') {
     selectedKeys.value = ['home']
-  } else if (to.path === '/about') {
-    selectedKeys.value = ['about']
+  } else if (current) {
+    selectedKeys.value = [current.key]
   }
 })
 
@@ -63,7 +75,7 @@ const doLogout = async () => {
   <div class="global-header">
     <div class="header-left">
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
-      <h1 class="site-title">YunAI</h1>
+      <h1 class="site-title">一句话 · 呈所想</h1>
       <Menu
         v-model:selectedKeys="selectedKeys"
         mode="horizontal"
@@ -128,10 +140,10 @@ const doLogout = async () => {
 }
 
 .site-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   margin: 0;
-  color: #1890ff;
+  color: #111827;
   white-space: nowrap;
 }
 

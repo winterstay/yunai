@@ -3,6 +3,11 @@ import { Layout } from 'ant-design-vue'
 import { RouterView } from 'vue-router'
 import GlobalHeader from './GlobalHeader.vue'
 import GlobalFooter from './GlobalFooter.vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const fullWidthRoutes = computed(() => route.path.startsWith('/app/chat/'))
 </script>
 
 <template>
@@ -11,7 +16,7 @@ import GlobalFooter from './GlobalFooter.vue'
       <GlobalHeader />
     </Layout.Header>
     
-    <Layout.Content class="layout-content">
+    <Layout.Content class="layout-content" :class="{ 'layout-content--full': fullWidthRoutes }">
       <RouterView />
     </Layout.Content>
     
@@ -42,6 +47,10 @@ import GlobalFooter from './GlobalFooter.vue'
   padding: 24px;
   background: #f5f5f5;
   min-height: calc(100vh - 64px - 70px);
+}
+
+.layout-content--full {
+  padding: 16px;
 }
 
 .layout-footer {

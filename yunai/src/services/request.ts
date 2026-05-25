@@ -1,11 +1,34 @@
 import axios from 'axios'
 import { message } from 'ant-design-vue'
 
+const LARGE_INTEGER_REGEX = /([:\[,]\s*)(-?\d{16,})(\s*[,}\]])/g
+
+const parseJsonSafely = (data: string) => {
+  const normalizedData = data.replace(LARGE_INTEGER_REGEX, '$1"$2"$3')
+  try {
+    return JSON.parse(normalizedData)
+  } catch {
+    return JSON.parse(data)
+  }
+}
+
 // 创建 Axios 实例
 const myAxios = axios.create({
   baseURL: 'http://localhost:8123/api',
   timeout: 60000,
   withCredentials: true,
+  transformResponse: [
+    (data) => {
+      if (typeof data !== 'string' || !data) {
+        return data
+      }
+      try {
+        return parseJsonSafely(data)
+      } catch {
+        return data
+      }
+    },
+  ],
 })
 
 // 全局请求拦截器
