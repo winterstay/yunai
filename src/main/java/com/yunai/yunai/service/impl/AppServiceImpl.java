@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.yunai.yunai.ai.AiCodeGeneratorService;
 import com.yunai.yunai.constant.AppConstant;
 import com.yunai.yunai.core.AiCodeGeneratorFacade;
 import com.yunai.yunai.exception.BusinessException;
@@ -24,7 +23,9 @@ import com.yunai.yunai.model.dto.vo.AppVO;
 import com.yunai.yunai.model.dto.vo.UserVO;
 import com.yunai.yunai.model.entity.App;
 import com.yunai.yunai.model.entity.User;
+import com.yunai.yunai.model.enums.ChatHistoryMessageTypeEnum;
 import com.yunai.yunai.model.enums.CodeGenTypeEnum;
+import com.yunai.yunai.model.enums.UserRoleEnum;
 import com.yunai.yunai.service.AppService;
 import com.yunai.yunai.service.ChatHistoryService;
 import com.yunai.yunai.service.UserService;
@@ -209,7 +210,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         if (!isOwner && !isAdmin) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        chatHistoryService.removeByAppId(appId);
+        chatHistoryService.deleteByAppId(appId);
         return this.removeById(appId);
     }
 
@@ -218,7 +219,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR);
         App oldApp = this.getById(appId);
         ThrowUtils.throwIf(oldApp == null, ErrorCode.NOT_FOUND_ERROR);
-        chatHistoryService.removeByAppId(appId);
+        chatHistoryService.deleteByAppId(appId);
         return this.removeById(appId);
     }
 
@@ -253,17 +254,17 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
         // 5. 持久化用户消息
-        chatHistoryService.saveUserMessage(appId, loginUser.getId(), message);
+        chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
         // 6. 调用 AI 生成代码并持久化 AI 回复
         StringBuilder aiMessageBuilder = new StringBuilder();
         return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId)
                 .doOnNext(aiMessageBuilder::append)
                 .doOnComplete(() -> {
                     if (!aiMessageBuilder.isEmpty()) {
-                        chatHistoryService.saveAiMessage(appId, loginUser.getId(), aiMessageBuilder.toString());
+                        chatHistoryService.addChatMessage(appId, aiMessageBuilder.toString(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
                     }
                 })
-                .doOnError(error -> chatHistoryService.saveAiErrorMessage(appId, loginUser.getId(), error.getMessage()));
+                .doOnError(error -> chatHistoryService.addChatMessage(appId, error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId()));
     }
 
     @Override

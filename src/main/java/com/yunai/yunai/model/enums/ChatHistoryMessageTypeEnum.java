@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 @Getter
-public enum MessageTypeEnum {
+public enum ChatHistoryMessageTypeEnum {
 
     USER("用户消息", "user"),
     AI("AI 消息", "ai");
@@ -13,7 +13,7 @@ public enum MessageTypeEnum {
 
     private final String value;
 
-    MessageTypeEnum(String text, String value) {
+    ChatHistoryMessageTypeEnum(String text, String value) {
         this.text = text;
         this.value = value;
     }
@@ -24,11 +24,11 @@ public enum MessageTypeEnum {
      * @param value 枚举值
      * @return 枚举
      */
-    public static MessageTypeEnum getEnumByValue(String value) {
+    public static ChatHistoryMessageTypeEnum getEnumByValue(String value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (MessageTypeEnum anEnum : MessageTypeEnum.values()) {
+        for (ChatHistoryMessageTypeEnum anEnum : ChatHistoryMessageTypeEnum.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }

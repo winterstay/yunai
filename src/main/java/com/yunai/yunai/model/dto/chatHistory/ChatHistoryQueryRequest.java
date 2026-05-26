@@ -1,12 +1,19 @@
 package com.yunai.yunai.model.dto.chatHistory;
 
-import java.io.Serializable;
 
-import com.yunai.yunai.common.PageRequest;
+
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+import com.yunai.yunai.common.PageRequest;
+
+/**
+ * 对话历史查询请求
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ChatHistoryQueryRequest extends PageRequest implements Serializable {
@@ -17,24 +24,30 @@ public class ChatHistoryQueryRequest extends PageRequest implements Serializable
     private Long id;
 
     /**
-     * 应用 id
-     */
-    private Long appId;
-
-    /**
-     * 创建用户 id
-     */
-    private Long userId;
-
-    /**
      * 消息内容
      */
     private String message;
 
     /**
-     * 消息类型：user / ai
+     * 消息类型（user/ai）
      */
     private String messageType;
+
+    /**
+     * 应用id
+     */
+    private Long appId;
+
+    /**
+     * 创建用户id
+     */
+    private Long userId;
+
+    /**
+     * 游标查询 - 最后一条记录的创建时间
+     * 用于分页查询，获取早于此时间的记录
+     */
+    private LocalDateTime lastCreateTime;
 
     private static final long serialVersionUID = 1L;
 }
