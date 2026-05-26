@@ -37,6 +37,10 @@ public interface AppService extends IService<App> {
 
     User getLoginUser(HttpServletRequest request);
 
+    boolean deleteApp(Long appId, User loginUser);
+
+    boolean deleteAppByAdmin(Long appId);
+
     Flux<String> chatToGenCode(Long appId, String message, User loginUser);
 
     String deployApp(Long appId, User loginUser);

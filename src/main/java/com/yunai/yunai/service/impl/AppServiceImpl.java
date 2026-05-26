@@ -26,6 +26,7 @@ import com.yunai.yunai.model.entity.App;
 import com.yunai.yunai.model.entity.User;
 import com.yunai.yunai.model.enums.CodeGenTypeEnum;
 import com.yunai.yunai.service.AppService;
+import com.yunai.yunai.service.ChatHistoryService;
 import com.yunai.yunai.service.UserService;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -52,6 +53,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Resource
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     @Override
     public void validApp(App app, boolean add) {
@@ -194,6 +198,30 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         return userService.getLoginUser(request);
     }
 
+    @Override
+    public boolean deleteApp(Long appId, User loginUser) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(loginUser == null || loginUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
+        App oldApp = this.getById(appId);
+        ThrowUtils.throwIf(oldApp == null, ErrorCode.NOT_FOUND_ERROR);
+        boolean isOwner = oldApp.getUserId().equals(loginUser.getId());
+        boolean isAdmin = UserRoleEnum.ADMIN.getValue().equals(loginUser.getUserRole());
+        if (!isOwner && !isAdmin) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        chatHistoryService.removeByAppId(appId);
+        return this.removeById(appId);
+    }
+
+    @Override
+    public boolean deleteAppByAdmin(Long appId) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR);
+        App oldApp = this.getById(appId);
+        ThrowUtils.throwIf(oldApp == null, ErrorCode.NOT_FOUND_ERROR);
+        chatHistoryService.removeByAppId(appId);
+        return this.removeById(appId);
+    }
+
     private String toSafeSortField(String sortField) {
         if (StrUtil.isBlank(sortField)) {
             return "createTime";
@@ -224,8 +252,18 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-        // 5. 调用 AI 生成代码
-        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        // 5. 持久化用户消息
+        chatHistoryService.saveUserMessage(appId, loginUser.getId(), message);
+        // 6. 调用 AI 生成代码并持久化 AI 回复
+        StringBuilder aiMessageBuilder = new StringBuilder();
+        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId)
+                .doOnNext(aiMessageBuilder::append)
+                .doOnComplete(() -> {
+                    if (!aiMessageBuilder.isEmpty()) {
+                        chatHistoryService.saveAiMessage(appId, loginUser.getId(), aiMessageBuilder.toString());
+                    }
+                })
+                .doOnError(error -> chatHistoryService.saveAiErrorMessage(appId, loginUser.getId(), error.getMessage()));
     }
 
     @Override
